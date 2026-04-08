@@ -260,17 +260,17 @@ async function analyzeImage() {
 
         const scores = await response.json();
         
-        // --- IMPORTANT: Console mein check karo kya aa raha hai ---
+      
         console.log("DEBUG: Backend se ye data aaya ->", scores);
         console.log("DEBUG: Current Tab active hai ->", currentTab);
 
         let finalScore = 0;
         
-        // Backend keys (cataract, retinopathy, jaundice) ko frontend tabs se map karo
+        
         if (currentTab === 'cataract') {
             finalScore = scores.cataract;
         } else if (currentTab === 'exudate') { 
-            // Yahan ensure karo ki backend 'retinopathy' naam ki key bhej raha hai
+            
             finalScore = scores.retinopathy; 
         } else if (currentTab === 'jaundice') {
             finalScore = scores.jaundice;
