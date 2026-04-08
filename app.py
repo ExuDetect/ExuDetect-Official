@@ -10,6 +10,9 @@ import numpy as np
 from PIL import Image
 import requests
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
@@ -84,7 +87,7 @@ except Exception as e:
     output_map = {}
 
 # OpenRouter API for Iris chatbot
-OPENROUTER_API_KEY = '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'
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
 OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 IRIS_SYSTEM_PROMPT = """You are Iris, an AI eye health assistant for OcuScan. You help users understand eye diseases, symptoms, and general eye health.
