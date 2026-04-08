@@ -1,0 +1,17 @@
+# Python temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+env/
+
+# VS Code files
+.vscode/
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# TFLite Runtime logs
+*.log
