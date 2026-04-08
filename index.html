@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OcuScan - AI Eye Health Screening</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-card: rgba(15, 25, 50, 0.8);
+            --card-border: rgba(100, 200, 255, 0.15);
+            --accent-blue: #00d4ff;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --font-display: 'Outfit', sans-serif;
+            --font-sans: 'Inter', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 100px;
+        }
+
+        /* Animated Background */
+        .bg-particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-particles::before {
+            content: '';
+            position: absolute;
+            width: 200%; height: 200%;
+            top: -50%; left: -50%;
+            background: radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.08) 0%, transparent 60%);
+            animation: bgPulse 15s ease-in-out infinite;
+        }
+        @keyframes bgPulse {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-5%, -5%) scale(1.1); }
+        }
+        .grid-overlay {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* Navigation */
+        nav#navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        nav#navbar.scrolled {
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-decoration: none;
+        }
+        .logo svg { width: 40px; height: 40px; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 5px 0;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-blue); }
+        .nav-links a.active { border-bottom: 2px solid var(--accent-blue); }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 5% 60px;
+            position: relative;
+            z-index: 1;
+        }
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradientShift 5s ease infinite;
+        }
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 40px;
+            line-height: 1.7;
+        }
+        .hero-btns { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), #0077b6);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.5);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-main);
+        }
+        .btn-outline:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* Container */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
+
+        /* Sections */
+        section {
+            padding: 80px 0;
+            position: relative;
+            z-index: 1;
+        }
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .section-title span { color: var(--accent-blue); }
+
+        /* Glass Card */
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s;
+        }
+        .glass-card:hover {
+            border-color: rgba(100, 200, 255, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.1);
+        }
+
+        /* Modules Grid */
+        .module-card {
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        .module-card:hover::before { transform: scaleX(1); }
+
+        /* Stats Bar */
+        .stats-bar {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(168, 85, 247, 0.1));
+            border-top: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+        }
+        .stat-item { text-align: center; }
+        .stat-item h2 { font-family: var(--font-display); }
+
+        /* Scanner */
+        #scanner { padding-top: 120px; align-items: center; }
+        #scanner .glass-card { padding: 0; overflow: hidden; }
+        .tab-btn {
+            padding: 18px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn.active {
+            color: var(--text-main);
+            border-bottom-color: var(--accent-blue);
+        }
+        .dropzone {
+            border: 2px dashed rgba(100, 200, 255, 0.3);
+            border-radius: 16px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        .dropzone:hover {
+            border-color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.05);
+        }
+        #dropzone span { font-size: 3rem; color: var(--accent-blue); display: block; margin-bottom: 15px; }
+
+        /* Results Panel */
+        #results-panel {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--card-border);
+        }
+        #results-panel h3 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Loader */
+        #loader { text-align: center; }
+        #loader svg { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loader p {
+            margin-top: 15px;
+            color: var(--accent-blue);
+            font-weight: 500;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 40px 5%;
+            border-top: 1px solid var(--card-border);
+            margin-top: 60px;
+            text-align: center;
+        }
+        footer .logo { justify-content: center; margin-bottom: 20px; }
+        footer p { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* Disclaimer Modal */
+        #disclaimer-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #disclaimer-modal .glass-card {
+            max-width: 500px;
+            text-align: center;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        #disclaimer-modal span { font-size: 3rem; display: block; margin-bottom: 20px; }
+        #disclaimer-modal h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        #disclaimer-modal p { color: var(--text-muted); line-height: 1.7; margin-bottom: 25px; }
+
+        /* FAQ */
+        .faq-item { cursor: pointer; }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            color: var(--text-muted);
+            margin-top: 0;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid var(--card-border);
+            z-index: 100;
+        }
+        .bottom-nav .nav-item {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 4px;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 5px 15px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        .bottom-nav .nav-item.active { color: var(--accent-blue); }
+        .bottom-nav .nav-icon { font-size: 1.3rem; }
+        .bottom-nav .nav-label { font-size: 0.7rem; font-weight: 500; }
+
+        /* Scanner View */
+        .scanner-view { display: none; }
+        .scanner-view.active { display: block; }
+        .hidden { display: none !important; }
+
+        /* Iris Chatbot */
+        #iris-widget {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 1001;
+        }
+        #iris-maximized {
+            width: 350px;
+            height: 480px;
+            background: linear-gradient(180deg, rgba(15, 25, 60, 0.98), rgba(10, 15, 35, 0.98));
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 50px rgba(0, 212, 255, 0.2), 0 0 100px rgba(168, 85, 247, 0.1);
+            transition: all 0.3s ease;
+        }
+        #iris-maximized.fullscreen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            z-index: 9999;
+        }
+        #iris-maximized.fullscreen .iris-messages {
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #iris-maximized.fullscreen .iris-message {
+            font-size: 1.1rem;
+            padding: 18px 22px;
+        }
+        #iris-maximized.fullscreen .iris-input-area {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 30px;
+        }
+        #iris-maximized.fullscreen .iris-input {
+            font-size: 1.1rem;
+            padding: 16px 22px;
+        }
+        .iris-header {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .iris-header-info { display: flex; align-items: center; gap: 12px; color: #fff; }
+        .iris-avatar {
+            width: 42px; height: 42px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            animation: avatarPulse 2s infinite;
+        }
+        @keyframes avatarPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+        }
+        .iris-name { font-weight: 700; font-size: 1rem; }
+        .iris-status { font-size: 0.7rem; opacity: 0.8; }
+        .iris-controls { display: flex; gap: 8px; }
+        .iris-control-btn {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .iris-control-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.1); }
+
+        .iris-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: transparent;
+        }
+        .iris-message {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            animation: messageSlide 0.3s ease;
+        }
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .iris-message.bot {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(168, 85, 247, 0.1));
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            color: #fff;
+            border-bottom-left-radius: 5px;
+        }
+        .iris-message.user {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: #fff;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .iris-input-area {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .iris-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .iris-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+        .iris-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+        .iris-btn {
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border: none;
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .iris-btn:hover { transform: scale(1.1); box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4); }
+        .iris-btn.mic { background: linear-gradient(135deg, var(--accent-green), #059669); }
+        .iris-btn.mic.recording {
+            animation: micPulse 1s infinite;
+            background: linear-gradient(135deg, var(--accent-red), #dc2626);
+        }
+        @keyframes micPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+            50% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+        }
+
+        #iris-minimized {
+            width: 65px; height: 65px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 30px rgba(168, 85, 247, 0.5), 0 0 50px rgba(0, 212, 255, 0.3);
+            font-size: 1.6rem;
+            display: flex; align-items: center; justify-content: center;
+            animation: floatBtn 3s ease-in-out infinite;
+        }
+        @keyframes floatBtn {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.5rem; }
+            section { padding: 60px 0; }
+            #scanner { padding-top: 100px; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="bg-particles">
+        <div class="grid-overlay"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <a href="#home" class="logo">
+            <svg viewBox="0 0 100 100">
+                <path d="M50 10L85 30V70L50 90L15 70V30L50 10Z" fill="#a855f7" opacity="0.3"/>
+                <path d="M50 20L75 35V65L50 80L25 65V35L50 20Z" fill="#0077B6" opacity="0.5"/>
+                <path d="M50 30L65 40V60L50 70L35 60V40L50 30Z" fill="#00d4ff" opacity="0.8"/>
+                <circle cx="50" cy="50" r="12" fill="#00d4ff"/>
+                <circle cx="50" cy="50" r="6" fill="#ec4899"/>
+            </svg>
+            <span>OcuScan</span>
+        </a>
+        <div class="nav-links">
+            <a href="#home" class="active">Home</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#modules">Modules</a>
+            <a href="#scanner">Scanner</a>
+            <a href="#history">History</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="home-view">
+        
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <h1 class="text-gradient">Detect. Diagnose. Protect.</h1>
+            <p>AI-powered eye health screening with stunning accuracy. Detect diabetic retinopathy, cataract, glaucoma, and more in seconds.</p>
+            <div class="hero-btns">
+                <a href="#scanner" class="btn btn-primary">Start Scanning →</a>
+                <a href="#modules" class="btn btn-outline">Explore Modules</a>
+            </div>
+        </section>
+
+        <!-- Stats Bar -->
+        <section id="stats" class="stats-bar">
+            <div class="container" style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 30px; text-align: center; padding: 40px 5%;">
+                <div class="stat-item">
+                    <h2 class="text-gradient stat-counter" data-target="10000" style="font-size: 3rem; font-family: var(--font-display); margin-bottom: 10px;">0</h2>
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">Scans Completed</p>
+                </div>
+                <div class="stat-item">
+                    <h2 class="text-gradient stat-counter" data-target="4" style="font-size: 3rem; font-family: var(--font-display); margin-bottom: 10px;">0</h2>
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">Diseases Detected</p>
+                </div>
+                <div class="stat-item">
+                    <h2 style="font-size: 3rem; font-family: var(--font-display); margin-bottom: 10px;">
+                        <span class="text-gradient stat-counter" data-target="95">0</span><span class="text-gradient">%</span>
+                    </h2>
+                    <p style="color: var(--text-muted); font-size: 1.1rem;">Accuracy Rate</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section id="how-it-works">
+            <div class="container">
+                <h2 class="section-title">How It <span>Works</span></h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 40px;">
+                    <div class="glass-card" style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 20px;">📤</div>
+                        <h3 style="margin-bottom: 15px; font-family: var(--font-display);">1. Upload Image</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Drag and drop or use your camera to capture an eye image.</p>
+                    </div>
+                    <div class="glass-card" style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 20px;">🧠</div>
+                        <h3 style="margin-bottom: 15px; font-family: var(--font-display);">2. AI Analyzes</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Our deep learning models process the image instantly.</p>
+                    </div>
+                    <div class="glass-card" style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 20px;">📊</div>
+                        <h3 style="margin-bottom: 15px; font-family: var(--font-display);">3. Get Results</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">View confidence scores and recommendations instantly.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modules -->
+        <section id="modules">
+            <div class="container">
+                <h2 class="section-title">Detection <span>Modules</span></h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                    <div class="glass-card module-card" style="border-top: 3px solid var(--accent-blue);" onclick="openScanner('exudate')">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                            <span style="font-size: 2.5rem; background: rgba(0,212,255,0.15); padding: 12px; border-radius: 14px; border: 1px solid rgba(0,212,255,0.3);">👁️</span>
+                            <h3 style="font-family: var(--font-display); font-size: 1.5rem;">Diabetic Retinopathy</h3>
+                        </div>
+                        <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Detect hard and soft exudates early to prevent progression.</p>
+                        <button class="btn btn-primary" style="width: 100%;">Open Scanner</button>
+                    </div>
+                    
+                    <div class="glass-card module-card" style="border-top: 3px solid var(--accent-purple);" onclick="openScanner('cataract')">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                            <span style="font-size: 2.5rem; background: rgba(168,85,247,0.15); padding: 12px; border-radius: 14px; border: 1px solid rgba(168,85,247,0.3);">🌫️</span>
+                            <h3 style="font-family: var(--font-display); font-size: 1.5rem;">Cataract</h3>
+                        </div>
+                        <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Identify lens opacification types and severity.</p>
+                        <button class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, var(--accent-purple), #7c3aed); box-shadow: 0 4px 20px rgba(168,85,247,0.4);">Open Scanner</button>
+                    </div>
+
+                    <div class="glass-card module-card" style="border-top: 3px solid var(--accent-green);" onclick="openScanner('glaucoma')">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                            <span style="font-size: 2.5rem; background: rgba(16,185,129,0.15); padding: 12px; border-radius: 14px; border: 1px solid rgba(16,185,129,0.3);">🔍</span>
+                            <h3 style="font-family: var(--font-display); font-size: 1.5rem;">Glaucoma</h3>
+                        </div>
+                        <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Detect early signs of glaucoma for timely treatment.</p>
+                        <button class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, var(--accent-green), #059669); box-shadow: 0 4px 20px rgba(16,185,129,0.4);">Open Scanner</button>
+                    </div>
+
+                    <div class="glass-card module-card" style="border-top: 3px solid var(--accent-amber);" onclick="openScanner('conjunctivitis')">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                            <span style="font-size: 2.5rem; background: rgba(245,158,11,0.15); padding: 12px; border-radius: 14px; border: 1px solid rgba(245,158,11,0.3);">🔴</span>
+                            <h3 style="font-family: var(--font-display); font-size: 1.5rem;">Conjunctivitis</h3>
+                        </div>
+                        <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Identify conjunctivitis symptoms for proper treatment.</p>
+                        <button class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, var(--accent-amber), #d97706); box-shadow: 0 4px 20px rgba(245,158,11,0.4);">Open Scanner</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scanner Section -->
+        <section id="scanner" style="padding-top: 120px; align-items: center;">
+            <div class="container" style="max-width: 900px;">
+                <div class="glass-card" style="padding: 0; overflow: hidden;">
+                    <div style="display: flex; border-bottom: 1px solid var(--card-border); background: rgba(0,0,0,0.2); flex-wrap: wrap;">
+                        <button class="tab-btn active" onclick="switchTab('exudate')" id="tab-exudate">Retinopathy</button>
+                        <button class="tab-btn" onclick="switchTab('cataract')" id="tab-cataract">Cataract</button>
+                        <button class="tab-btn" onclick="switchTab('glaucoma')" id="tab-glaucoma">Glaucoma</button>
+                        <button class="tab-btn" onclick="switchTab('conjunctivitis')" id="tab-conjunctivitis">Conjunctivitis</button>
+                    </div>
+
+                    <div style="padding: 40px;">
+                        <div class="dropzone" id="dropzone">
+                            <div id="upload-prompt">
+                                <span>📸</span>
+                                <h3 style="margin-bottom: 10px; color: var(--text-main);">Drag & Drop Eye Image Here</h3>
+                                <p style="color: var(--text-muted); margin-bottom: 20px;">Or click to browse files</p>
+                                <input type="file" id="file-input" style="display: none;" accept="image/*">
+                                <button class="btn btn-outline" onclick="event.stopPropagation(); document.getElementById('file-input').click();">Browse Files</button>
+                                <button class="btn btn-outline" style="margin-left: 10px;" onclick="event.stopPropagation(); startCamera();">📷 Use Camera</button>
+                            </div>
+                            <video id="camera-feed" style="display: none; width: 100%; max-height: 300px; border-radius: 10px;"></video>
+                            <img id="image-preview" style="display: none; width: 100%; max-height: 300px; object-fit: contain; border-radius: 10px;">
+                            <button id="remove-btn" class="btn" style="display: none; position: absolute; top: 10px; right: 10px; background: rgba(239, 68, 68, 0.8); color: white; padding: 8px 15px; border-radius: 8px;" onclick="resetScanner(); event.stopPropagation();">✕ Remove</button>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button id="analyze-btn" class="btn btn-primary" style="width: 100%; max-width: 300px; font-size: 1.1rem; padding: 16px;" onclick="analyzeImage()" disabled>Analyze Image</button>
+                        </div>
+
+                        <div id="results-panel" style="display: none; margin-top: 40px; padding-top: 30px; border-top: 1px solid var(--card-border);">
+                            <h3>Analysis Report</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 600px; margin: 0 auto;">
+                                <div>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem;">Status</p>
+                                    <div id="res-status" style="display: inline-block; padding: 5px 12px; border-radius: 20px; font-weight: 600; margin-top: 5px;">Normal</div>
+                                </div>
+                                <div>
+                                    <p style="color: var(--text-muted); font-size: 0.9rem;">Severity</p>
+                                    <div id="res-severity" style="font-size: 1.2rem; font-weight: 600; margin-top: 5px;">None</div>
+                                </div>
+                                <div style="grid-column: span 2;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                        <p style="color: var(--text-muted); font-size: 0.9rem;">Confidence</p>
+                                        <span id="res-confidence-text" style="font-weight: bold; color: var(--accent-blue);">0%</span>
+                                    </div>
+                                    <div style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden;">
+                                        <div id="res-confidence-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); transition: width 1s ease;"></div>
+                                    </div>
+                                </div>
+                                <div style="grid-column: span 2;">
+                                    <p style="color: var(--text-muted); font-size: 0.9rem;">Recommendation</p>
+                                    <p id="res-recommendation" style="margin-top: 5px; line-height: 1.5;">Maintain routine screening schedule.</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 30px;">
+                                <button class="btn btn-outline" onclick="downloadReport()">📥 Download</button>
+                                <button class="btn btn-outline" onclick="shareReport()">🔗 Share</button>
+                            </div>
+                        </div>
+
+                        <div id="loader" style="display: none; text-align: center; margin-top: 40px;">
+                            <svg style="width: 50px; height: 50px;" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke="var(--accent-blue)" stroke-width="4" fill="none" stroke-dasharray="31.4 31.4"></circle>
+                            </svg>
+                            <p style="margin-top: 15px; color: var(--accent-blue); font-weight: 500; animation: pulse 1.5s infinite;">Analyzing image...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- History Section -->
+        <section id="history" style="background: rgba(0,0,0,0.2);">
+            <div class="container">
+                <h2 class="section-title">Scan <span>History</span></h2>
+                <div class="glass-card" style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 500px;">
+                        <thead>
+                            <tr style="color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <th style="padding: 12px 10px;">Date</th>
+                                <th style="padding: 12px 10px;">Module</th>
+                                <th style="padding: 12px 10px;">Result</th>
+                                <th style="padding: 12px 10px;">Severity</th>
+                                <th style="padding: 12px 10px;">Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No scans yet. <a href="#scanner" style="color: var(--accent-blue);">Start scanning</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq">
+            <div class="container" style="max-width: 800px;">
+                <h2 class="section-title">Frequently Asked <span>Questions</span></h2>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="glass-card faq-item" style="padding: 20px; cursor: pointer;" onclick="toggleFaq(this)">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 1.1rem;">
+                            Is my medical data secure?
+                            <span style="color: var(--accent-blue); font-size: 1.5rem;">+</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p style="padding-top: 15px;">Yes. Your data is stored securely and all images are processed locally. No personal data is shared with third parties.</p>
+                        </div>
+                    </div>
+                    <div class="glass-card faq-item" style="padding: 20px; cursor: pointer;" onclick="toggleFaq(this)">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 1.1rem;">
+                            Can I use this for real medical diagnosis?
+                            <span style="color: var(--accent-blue); font-size: 1.5rem;">+</span>
+                        </div>
+                        <div class="faq-answer">
+                            <p style="padding-top: 15px;">No. This is an AI prototype for demonstration purposes. Always consult a licensed medical professional for actual diagnosis.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container">
+                <div class="logo">
+                    <svg viewBox="0 0 100 100" width="30" height="30">
+                        <path d="M50 10L85 30V70L50 90L15 70V30L50 10Z" fill="#a855f7" opacity="0.3"/>
+                        <path d="M50 20L75 35V65L50 80L25 65V35L50 20Z" fill="#0077B6" opacity="0.5"/>
+                        <path d="M50 30L65 40V60L50 70L35 60V40L50 30Z" fill="#00d4ff" opacity="0.8"/>
+                        <circle cx="50" cy="50" r="12" fill="#00d4ff"/>
+                    </svg>
+                    <span>OcuScan</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0 auto 10px;">AI-powered eye health screening platform.</p>
+                <p style="color: var(--text-muted); font-size: 0.8rem;">© 2026 OcuScan. All rights reserved.</p>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Disclaimer Modal -->
+    <div id="disclaimer-modal">
+        <div class="glass-card">
+            <span>⚠️</span>
+            <h3>Medical Disclaimer</h3>
+            <p>OcuScan is a prototype for demonstration purposes only. Do not use its output for clinical diagnosis without consulting a licensed medical professional.</p>
+            <button class="btn btn-primary" onclick="acceptDisclaimer()" style="width: 100%;">I Understand & Agree</button>
+        </div>
+    </div>
+
+    <!-- Iris Chatbot Widget -->
+    <div id="iris-widget">
+        <div id="iris-maximized" style="display: none;">
+            <div class="iris-header">
+                <div class="iris-header-info">
+                    <div class="iris-avatar">💬</div>
+                    <div>
+                        <p class="iris-name">Iris</p>
+                        <p class="iris-status">Eye Health Assistant</p>
+                    </div>
+                </div>
+                <div class="iris-controls">
+                    <button class="iris-control-btn" onclick="toggleIrisFullscreen()" title="Fullscreen">⛶</button>
+                    <button class="iris-control-btn" onclick="toggleIris('minimize')" title="Minimize">−</button>
+                    <button class="iris-control-btn" onclick="toggleIris('close')" title="Close">×</button>
+                </div>
+            </div>
+            <div class="iris-messages" id="iris-messages">
+                <div class="iris-message bot">👋 Hello! I'm Iris, your AI eye health assistant. How can I help you today?</div>
+            </div>
+            <div class="iris-input-area">
+                <input type="text" class="iris-input" id="iris-input" placeholder="Ask Iris about eye health..." onkeypress="if(event.key==='Enter')sendToIris()">
+                <button class="iris-btn mic" id="mic-btn" onclick="startSpeechRecognition()" title="Voice Input">🎤</button>
+                <button class="iris-btn" onclick="sendToIris()" title="Send">➤</button>
+            </div>
+        </div>
+        <button id="iris-minimized" onclick="toggleIris('maximize')">💬</button>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchPage('home')">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Home</span>
+        </button>
+        <button class="nav-item" onclick="switchPage('scan')">
+            <span class="nav-icon">📷</span>
+            <span class="nav-label">Scan</span>
+        </button>
+        <button class="nav-item" onclick="switchPage('history')">
+            <span class="nav-icon">📜</span>
+            <span class="nav-label">History</span>
+        </button>
+        <button class="nav-item" onclick="handleProfile()">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Profile</span>
+        </button>
+    </nav>
+
+    <script>
+        // State
+        let currentTab = 'exudate';
+        let isImageUploaded = false;
+        let stream = null;
+
+        // Disclaimer
+        function acceptDisclaimer() {
+            localStorage.setItem('ocuscan_disclaimer', 'true');
+            document.getElementById('disclaimer-modal').style.display = 'none';
+        }
+        
+        window.onload = function() {
+            if (localStorage.getItem('ocuscan_disclaimer')) {
+                document.getElementById('disclaimer-modal').style.display = 'none';
+            }
+            // Show all sections by default
+            document.querySelectorAll('section').forEach(function(s) { s.style.display = 'block'; });
+            initCounters();
+            checkAuth();
+        };
+
+        // Scroll handler for bottom nav active state
+        window.addEventListener('scroll', function() {
+            var scrollPos = window.scrollY || window.pageYOffset;
+            var sections = document.querySelectorAll('section');
+            var bottomNavItems = document.querySelectorAll('.bottom-nav .nav-item');
+            
+            // Find current section
+            var currentSection = 'home';
+            sections.forEach(function(section) {
+                var sectionTop = section.offsetTop - 150;
+                var sectionHeight = section.offsetHeight;
+                var sectionId = section.getAttribute('id');
+                
+                if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
+                    if (sectionId === 'home' || sectionId === 'stats' || sectionId === 'how-it-works' || sectionId === 'modules' || sectionId === 'faq') {
+                        currentSection = 'home';
+                    } else if (sectionId === 'scanner') {
+                        currentSection = 'scan';
+                    } else if (sectionId === 'history') {
+                        currentSection = 'history';
+                    }
+                }
+            });
+            
+            // Update bottom nav active state
+            bottomNavItems.forEach(function(item, index) {
+                item.classList.remove('active');
+                if ((currentSection === 'home' && index === 0) ||
+                    (currentSection === 'scan' && index === 1) ||
+                    (currentSection === 'history' && index === 2)) {
+                    item.classList.add('active');
+                }
+            });
+        });
+        
+        // Initialize page sections
+        function initPage() {
+            document.querySelectorAll('section').forEach(function(s) { s.style.display = 'block'; });
+        }
+
+        // Counters
+        function initCounters() {
+            document.querySelectorAll('.stat-counter').forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-target'));
+                let current = 0;
+                const increment = target / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    counter.textContent = Math.ceil(current) + (target > 1000 ? '+' : '');
+                }, 30);
+            });
+        }
+
+        // Auth
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/me');
+                const data = await res.json();
+                if (!data.user_id) {
+                    document.getElementById('profile-btn')?.remove();
+                }
+            } catch (e) {}
+        }
+
+        function handleProfile() {
+            fetch('/api/me').then(r => r.json()).then(data => {
+                if (data.user_id) {
+                    if (confirm('Logout?')) {
+                        fetch('/api/logout', {method: 'POST'}).then(() => location.reload());
+                    }
+                } else {
+                    window.location.href = '/templates/auth/login.html';
+                }
+            });
+        }
+
+        // Page Navigation
+        function switchPage(page) {
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(function(n) { n.classList.remove('active'); });
+            event.currentTarget.classList.add('active');
+            
+            // Reset all sections to visible first
+            document.querySelectorAll('section').forEach(function(s) { s.style.display = 'block'; });
+            
+            if (page === 'scan') {
+                document.querySelectorAll('section').forEach(function(s) { s.style.display = 'none'; });
+                document.getElementById('scanner').style.display = 'flex';
+                document.getElementById('scanner').scrollIntoView({ behavior: 'smooth' });
+            } else if (page === 'history') {
+                document.querySelectorAll('section').forEach(function(s) { s.style.display = 'none'; });
+                document.getElementById('history').style.display = 'block';
+                loadHistory();
+            } else {
+                // Home - show all sections
+                document.querySelectorAll('section').forEach(function(s) { s.style.display = 'block'; });
+            }
+        }
+
+        // Scanner
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.borderBottomColor = 'transparent';
+                btn.style.color = 'var(--text-muted)';
+            });
+            const activeBtn = document.getElementById('tab-' + tabId);
+            activeBtn.classList.add('active');
+            activeBtn.style.color = 'var(--text-main)';
+            activeBtn.style.borderBottomColor = getTabColor(tabId);
+        }
+
+        function getTabColor(tab) {
+            const colors = {
+                'exudate': 'var(--accent-blue)',
+                'cataract': 'var(--accent-purple)',
+                'glaucoma': 'var(--accent-green)',
+                'conjunctivitis': 'var(--accent-amber)'
+            };
+            return colors[tab] || 'var(--accent-blue)';
+        }
+
+        function openScanner(tabId) {
+            document.getElementById('scanner').scrollIntoView({ behavior: 'smooth' });
+            switchTab(tabId);
+        }
+
+        // File handling
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const imagePreview = document.getElementById('image-preview');
+        const uploadPrompt = document.getElementById('upload-prompt');
+        const removeBtn = document.getElementById('remove-btn');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const cameraFeed = document.getElementById('camera-feed');
+
+        dropzone.addEventListener('click', function() { fileInput.click(); });
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files[0]) handleFile(e.target.files[0]);
+        });
+
+        dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.style.borderColor = getTabColor(currentTab); });
+        dropzone.addEventListener('dragleave', function() { dropzone.style.borderColor = 'rgba(100, 200, 255, 0.3)'; });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropzone.style.borderColor = 'rgba(100, 200, 255, 0.3)';
+            if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+                uploadPrompt.style.display = 'none';
+                removeBtn.style.display = 'block';
+                analyzeBtn.disabled = false;
+                isImageUploaded = true;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                cameraFeed.srcObject = stream;
+                cameraFeed.style.display = 'block';
+                cameraFeed.play();
+                uploadPrompt.style.display = 'none';
+                removeBtn.style.display = 'block';
+            } catch (err) {
+                alert("Camera not available");
+            }
+        }
+
+        function captureImage() {
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraFeed.videoWidth;
+            canvas.height = cameraFeed.videoHeight;
+            canvas.getContext('2d').drawImage(cameraFeed, 0, 0);
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            imagePreview.src = canvas.toDataURL('image/jpeg');
+            cameraFeed.style.display = 'none';
+            imagePreview.style.display = 'block';
+            uploadPrompt.style.display = 'none';
+            removeBtn.style.display = 'block';
+            analyzeBtn.disabled = false;
+            isImageUploaded = true;
+        }
+
+        function resetScanner() {
+            if (stream) stream.getTracks().forEach(t => t.stop());
+            stream = null;
+            imagePreview.style.display = 'none';
+            cameraFeed.style.display = 'none';
+            uploadPrompt.style.display = 'block';
+            removeBtn.style.display = 'none';
+            analyzeBtn.disabled = true;
+            fileInput.value = '';
+            isImageUploaded = false;
+            document.getElementById('results-panel').style.display = 'none';
+        }
+
+        async function analyzeImage() {
+            if (!isImageUploaded) return;
+
+            analyzeBtn.style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('results-panel').style.display = 'none';
+
+            try {
+                const blob = await fetch(imagePreview.src).then(res => res.blob());
+                const formData = new FormData();
+                formData.append('image', blob, 'eye_scan.jpg');
+
+                const response = await fetch('http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const scores = await response.json();
+
+                let finalScore = 0;
+                if (currentTab === 'exudate') finalScore = scores.diabetic_retinopathy || 0;
+                else if (currentTab === 'cataract') finalScore = scores.cataract || 0;
+                else if (currentTab === 'glaucoma') finalScore = scores.glaucoma || 0;
+                else if (currentTab === 'conjunctivitis') finalScore = scores.conjunctivitis || 0;
+
+                generateResults(finalScore);
+
+            } catch (err) {
+                alert("Server Error! Is the app running?");
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+                analyzeBtn.style.display = 'inline-flex';
+            }
+        }
+
+        function generateResults(score) {
+            const isPositive = score > 0.1;
+            const conf = (score * 100).toFixed(1);
+            const activeColor = getTabColor(currentTab);
+
+            document.getElementById('res-confidence-text').textContent = conf + '%';
+            document.getElementById('res-confidence-text').style.color = activeColor;
+            document.getElementById('res-confidence-bar').style.width = conf + '%';
+            document.getElementById('res-confidence-bar').style.background = 'linear-gradient(90deg, ' + activeColor + ', #fff)';
+
+            let severity = 'None';
+            let rec = 'Maintain routine screening schedule.';
+
+            if (isPositive) {
+                document.getElementById('res-status').innerText = "Attention Required";
+                document.getElementById('res-status').style.background = "rgba(239, 68, 68, 0.2)";
+                document.getElementById('res-status').style.color = "var(--accent-red)";
+                document.getElementById('res-status').style.border = "1px solid rgba(239, 68, 68, 0.5)";
+
+                if (score > 0.85) severity = 'Severe';
+                else if (score > 0.65) severity = 'Moderate';
+                else severity = 'Mild';
+
+                const recs = {
+                    'exudate': severity === 'Severe' ? 'Refer immediately to ophthalmologist.' : 'Schedule eye exam within 2 weeks.',
+                    'cataract': severity === 'Severe' ? 'Surgical intervention recommended.' : 'Monitor visual changes.',
+                    'glaucoma': severity === 'Severe' ? 'Immediate referral required.' : 'Schedule pressure check.',
+                    'conjunctivitis': severity === 'Severe' ? 'Seek immediate medical attention.' : 'Use prescribed eye drops.'
+                };
+                rec = recs[currentTab] || rec;
+            } else {
+                document.getElementById('res-status').innerText = "No Anomalies Detected";
+                document.getElementById('res-status').style.background = "rgba(16, 185, 129, 0.2)";
+                document.getElementById('res-status').style.color = "var(--accent-green)";
+                document.getElementById('res-status').style.border = "1px solid rgba(16, 185, 129, 0.5)";
+            }
+
+            document.getElementById('res-severity').innerText = severity;
+            document.getElementById('res-recommendation').innerText = rec;
+            document.getElementById('results-panel').style.display = 'block';
+        }
+
+        // History
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                if (res.ok) {
+                    const data = await res.json();
+                    const tbody = document.getElementById('history-body');
+                    if (data.scans.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No scans yet. <a href="#scanner" style="color: var(--accent-blue);">Start scanning</a></td></tr>';
+                    } else {
+                        tbody.innerHTML = data.scans.map(s => 
+                            '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">' +
+                            '<td style="padding: 12px 10px;">' + new Date(s.created_at).toLocaleDateString() + '</td>' +
+                            '<td style="padding: 12px 10px; text-transform: capitalize;">' + s.module.replace('_', ' ') + '</td>' +
+                            '<td style="padding: 12px 10px; color: ' + (s.result === 'Detected' ? 'var(--accent-red)' : 'var(--accent-green)') + ';">' + s.result + '</td>' +
+                            '<td style="padding: 12px 10px;">' + s.severity + '</td>' +
+                            '<td style="padding: 12px 10px;">' + s.confidence.toFixed(1) + '%</td>' +
+                            '</tr>'
+                        ).join('');
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // FAQ
+        function toggleFaq(el) {
+            const answer = el.querySelector('.faq-answer');
+            const icon = el.querySelector('span');
+            if (answer.style.maxHeight) {
+                answer.style.maxHeight = null;
+                icon.textContent = '+';
+            } else {
+                answer.style.maxHeight = answer.scrollHeight + "px";
+                icon.textContent = '−';
+            }
+        }
+
+        // Download & Share
+        function downloadReport() {
+            const content = 'OCUSCAN AI REPORT\nDate: ' + new Date().toLocaleString() + '\nModule: ' + currentTab.toUpperCase() + '\nStatus: ' + document.getElementById('res-status').innerText + '\nSeverity: ' + document.getElementById('res-severity').innerText + '\nConfidence: ' + document.getElementById('res-confidence-text').innerText + '\nRecommendation: ' + document.getElementById('res-recommendation').innerText + '\n\nDisclaimer: Auto-generated by OcuScan AI. Not a clinical diagnosis.';
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'OcuScan_Report_' + Date.now() + '.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function shareReport() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'OcuScan Analysis',
+                    text: 'Module: ' + currentTab.toUpperCase() + ' | Status: ' + document.getElementById('res-status').innerText + ' | Conf: ' + document.getElementById('res-confidence-text').innerText,
+                });
+            } else {
+                alert('Use the Download button to save your report.');
+            }
+        }
+
+        // Iris Chatbot
+        function toggleIris(action) {
+            var maximized = document.getElementById('iris-maximized');
+            var minimized = document.getElementById('iris-minimized');
+            
+            if (action === 'maximize' || maximized.style.display === 'none') {
+                maximized.style.display = 'flex';
+                minimized.style.display = 'none';
+            } else {
+                maximized.style.display = 'none';
+                maximized.classList.remove('fullscreen');
+                minimized.style.display = 'flex';
+            }
+        }
+
+        function toggleIrisFullscreen() {
+            var maximized = document.getElementById('iris-maximized');
+            maximized.classList.toggle('fullscreen');
+        }
+
+        async function sendToIris(msg) {
+            const input = document.getElementById('iris-input');
+            const message = msg || input.value.trim();
+            if (!message) return;
+
+            const messagesDiv = document.getElementById('iris-messages');
+            messagesDiv.innerHTML += '<div class="iris-message user">' + message + '</div>';
+            input.value = '';
+
+            messagesDiv.innerHTML += '<div class="iris-message bot" id="typing">Typing...</div>';
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message})
+                });
+                const data = await res.json();
+                document.getElementById('typing').remove();
+                messagesDiv.innerHTML += '<div class="iris-message bot">' + data.response + '</div>';
+            } catch (e) {
+                document.getElementById('typing').remove();
+                messagesDiv.innerHTML += '<div class="iris-message bot">Sorry, I\'m having trouble responding.</div>';
+            }
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Speech Recognition
+        function startSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('Speech recognition not supported in this browser');
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            const micBtn = document.getElementById('mic-btn');
+            recognition.onstart = function() { micBtn.classList.add('recording'); };
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('iris-input').value = transcript;
+                sendToIris(transcript);
+            };
+            recognition.onend = function() { micBtn.classList.remove('recording'); };
+            recognition.onerror = function() { micBtn.classList.remove('recording'); };
+
+            recognition.start();
+        }
+    </script>
+</body>
+</html>
