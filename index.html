@@ -7,44 +7,62 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Minimal grayscale palette with clear semantic tokens */
-            --bg: #0b0b0f;                 /* page background - dark */
-            --bg-light: #ffffff;           /* page background - light */
-            --card-bg: #0f1720;            /* card background (dark) */
-            --card-bg-light: #ffffff;      /* card background (light) */
-            --border: rgba(255,255,255,0.04);
-            --accent-blue: #9ca3af;       /* neutral accent (gray) */
-            --accent-purple: #9ca3af;
-            --accent-pink: #9ca3af;
-            --accent-green: #9ca3af;
-            --accent-amber: #9ca3af;
+            --bg-dark: #0a0a1a;
+            --bg-card: rgba(15, 25, 50, 0.8);
+            --card-border: rgba(100, 200, 255, 0.15);
+            --accent-blue: #00d4ff;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
             --accent-red: #ef4444;
-            --text-main: #e6eef6;
-            --text-muted: #9ca3af;
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
             --font-display: 'Outfit', sans-serif;
             --font-sans: 'Inter', sans-serif;
-            --glass: rgba(255,255,255,0.02);
-            --success: #10b981;
-            --danger: #ef4444;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: var(--font-sans);
-            background: var(--bg);
+            background: var(--bg-dark);
             color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
             padding-bottom: 100px;
-            -webkit-font-smoothing:antialiased;
-            -moz-osx-font-smoothing:grayscale;
         }
 
         /* Animated Background */
-        /* Remove heavy decorative backgrounds for minimal UI */
-        .bg-particles { display: none; }
-        .grid-overlay { display: none; }
+        .bg-particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-particles::before {
+            content: '';
+            position: absolute;
+            width: 200%; height: 200%;
+            top: -50%; left: -50%;
+            background: radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.08) 0%, transparent 60%);
+            animation: bgPulse 15s ease-in-out infinite;
+        }
+        @keyframes bgPulse {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-5%, -5%) scale(1.1); }
+        }
+        .grid-overlay {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
 
         /* Navigation */
         nav#navbar {
@@ -104,10 +122,16 @@
             line-height: 1.1;
         }
         .text-gradient {
-            color: var(--text-main);
-            background: none;
-            -webkit-text-fill-color: unset;
-            -webkit-background-clip: unset;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradientShift 5s ease infinite;
+        }
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
         .hero p {
             font-size: 1.2rem;
@@ -133,23 +157,22 @@
             gap: 8px;
         }
         .btn-primary {
-            background: var(--card-bg) !important;
-            color: var(--text-main) !important;
-            border: 1px solid var(--border) !important;
-            box-shadow: none !important;
+            background: linear-gradient(135deg, var(--accent-blue), #0077b6);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
         }
         .btn-primary:hover {
-            transform: translateY(-1px);
-            border-color: var(--accent-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.5);
         }
         .btn-outline {
             background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-main);
         }
         .btn-outline:hover {
             border-color: var(--accent-blue);
-            color: var(--text-main);
+            color: var(--accent-blue);
         }
 
         /* Container */
@@ -168,19 +191,21 @@
             text-align: center;
             margin-bottom: 50px;
         }
-        .section-title span { color: var(--text-muted); }
+        .section-title span { color: var(--accent-blue); }
 
         /* Glass Card */
         .glass-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.18s ease;
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s;
         }
         .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+            border-color: rgba(100, 200, 255, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.1);
         }
 
         /* Modules Grid */
@@ -446,58 +471,58 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .iris-message.bot {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border);
-            color: var(--text-main);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(168, 85, 247, 0.1));
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            color: #fff;
             border-bottom-left-radius: 5px;
         }
         .iris-message.user {
-            background: var(--card-bg);
-            color: var(--text-main);
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: #fff;
             margin-left: auto;
             border-bottom-right-radius: 5px;
         }
 
         .iris-input-area {
-            padding: 12px;
-            background: var(--card-bg);
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
             display: flex;
             gap: 10px;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
         }
         .iris-input {
             flex: 1;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: transparent;
-            color: var(--text-main);
-            font-size: 0.95rem;
+            padding: 12px 18px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 0.9rem;
             outline: none;
-            transition: all 0.18s;
+            transition: all 0.3s;
         }
         .iris-input:focus {
             border-color: var(--accent-blue);
-            box-shadow: none;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
         }
-        .iris-input::placeholder { color: var(--text-muted); }
+        .iris-input::placeholder { color: rgba(255, 255, 255, 0.4); }
 
         .iris-btn {
-            width: 44px; height: 44px;
+            width: 45px; height: 45px;
             border-radius: 50%;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            color: var(--text-main);
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border: none;
+            color: #fff;
             font-size: 1.1rem;
             cursor: pointer;
-            transition: all 0.18s;
+            transition: all 0.3s;
             display: flex; align-items: center; justify-content: center;
         }
-        .iris-btn:hover { transform: scale(1.03); box-shadow: 0 6px 14px rgba(0,0,0,0.4); }
-        .iris-btn.mic { background: var(--success); color: #062017; border-color: transparent; }
+        .iris-btn:hover { transform: scale(1.1); box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4); }
+        .iris-btn.mic { background: linear-gradient(135deg, var(--accent-green), #059669); }
         .iris-btn.mic.recording {
             animation: micPulse 1s infinite;
-            background: var(--danger); color: #fff; border-color: transparent;
+            background: linear-gradient(135deg, var(--accent-red), #dc2626);
         }
         @keyframes micPulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
@@ -507,10 +532,10 @@
         #iris-minimized {
             width: 65px; height: 65px;
             border-radius: 50%;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            border: none;
             cursor: pointer;
-            box-shadow: 0 8px 18px rgba(0,0,0,0.5);
+            box-shadow: 0 5px 30px rgba(168, 85, 247, 0.5), 0 0 50px rgba(0, 212, 255, 0.3);
             font-size: 1.6rem;
             display: flex; align-items: center; justify-content: center;
             animation: floatBtn 3s ease-in-out infinite;
@@ -633,7 +658,7 @@
                             <h3 style="font-family: var(--font-display); font-size: 1.5rem;">Cataract</h3>
                         </div>
                         <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Identify lens opacification types and severity.</p>
-                        <button class="btn btn-primary" style="width: 100%;">Open Scanner</button>
+                        <button class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, var(--accent-purple), #7c3aed); box-shadow: 0 4px 20px rgba(168,85,247,0.4);">Open Scanner</button>
                     </div>
 
                     <div class="glass-card module-card" style="border-top: 3px solid var(--accent-green);" onclick="openScanner('glaucoma')">
@@ -642,7 +667,7 @@
                             <h3 style="font-family: var(--font-display); font-size: 1.5rem;">Glaucoma</h3>
                         </div>
                         <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Detect early signs of glaucoma for timely treatment.</p>
-                        <button class="btn btn-primary" style="width: 100%;">Open Scanner</button>
+                        <button class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, var(--accent-green), #059669); box-shadow: 0 4px 20px rgba(16,185,129,0.4);">Open Scanner</button>
                     </div>
 
                     <div class="glass-card module-card" style="border-top: 3px solid var(--accent-amber);" onclick="openScanner('conjunctivitis')">
@@ -651,7 +676,7 @@
                             <h3 style="font-family: var(--font-display); font-size: 1.5rem;">Conjunctivitis</h3>
                         </div>
                         <p style="color: var(--text-muted); margin-bottom: 25px; line-height: 1.6;">Identify conjunctivitis symptoms for proper treatment.</p>
-                        <button class="btn btn-primary" style="width: 100%;">Open Scanner</button>
+                        <button class="btn btn-primary" style="width: 100%; background: linear-gradient(135deg, var(--accent-amber), #d97706); box-shadow: 0 4px 20px rgba(245,158,11,0.4);">Open Scanner</button>
                     </div>
                 </div>
             </div>
@@ -676,9 +701,7 @@
                                 <p style="color: var(--text-muted); margin-bottom: 20px;">Or click to browse files</p>
                                 <input type="file" id="file-input" style="display: none;" accept="image/*">
                                 <button class="btn btn-outline" onclick="event.stopPropagation(); document.getElementById('file-input').click();">Browse Files</button>
-                                <button class="btn btn-outline" id="use-camera-btn" style="margin-left: 10px;" onclick="event.stopPropagation(); startCamera();">📷 Use Camera</button>
-                                <button class="btn btn-outline" id="capture-btn" style="margin-left: 10px; display: none;" onclick="event.stopPropagation(); captureImage();">📸 Capture</button>
-                                <button class="btn btn-outline" id="switch-camera-btn" style="margin-left: 10px; display: none;" onclick="event.stopPropagation(); switchCamera();">🔁 Switch Camera</button>
+                                <button class="btn btn-outline" style="margin-left: 10px;" onclick="event.stopPropagation(); startCamera();">📷 Use Camera</button>
                             </div>
                             <video id="camera-feed" style="display: none; width: 100%; max-height: 300px; border-radius: 10px;"></video>
                             <img id="image-preview" style="display: none; width: 100%; max-height: 300px; object-fit: contain; border-radius: 10px;">
@@ -706,7 +729,7 @@
                                         <span id="res-confidence-text" style="font-weight: bold; color: var(--accent-blue);">0%</span>
                                     </div>
                                     <div style="height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden;">
-                                        <div id="res-confidence-bar" style="height: 100%; width: 0%; background: var(--accent-blue); transition: width 1s ease;"></div>
+                                        <div id="res-confidence-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); transition: width 1s ease;"></div>
                                     </div>
                                 </div>
                                 <div style="grid-column: span 2;">
@@ -863,8 +886,6 @@
         let currentTab = 'exudate';
         let isImageUploaded = false;
         let stream = null;
-        let videoDevices = [];
-        let currentVideoDeviceIndex = 0;
 
         // Disclaimer
         function acceptDisclaimer() {
@@ -880,8 +901,6 @@
             document.querySelectorAll('section').forEach(function(s) { s.style.display = 'block'; });
             initCounters();
             checkAuth();
-            // Load history on page load
-            loadHistory();
         };
 
         // Scroll handler for bottom nav active state
@@ -945,47 +964,23 @@
         async function checkAuth() {
             try {
                 const res = await fetch('/api/me');
-                if (!res.ok) {
-                    console.error('Auth check failed:', res.status);
-                    return;
-                }
                 const data = await res.json();
-                if (data.user_id) {
-                    // User is logged in - update UI
-                    console.log('User logged in:', data.username);
-                } else {
-                    // User is not logged in - hide profile features
-                    console.log('User not logged in');
+                if (!data.user_id) {
+                    document.getElementById('profile-btn')?.remove();
                 }
-            } catch (e) {
-                console.error('Auth check error:', e);
-            }
+            } catch (e) {}
         }
 
         function handleProfile() {
-            fetch('/api/me')
-                .then(r => {
-                    if (!r.ok) throw new Error('Auth check failed');
-                    return r.json();
-                })
-                .then(data => {
-                    if (data.user_id) {
-                        if (confirm('Do you want to logout?')) {
-                            return fetch('/api/logout', {method: 'POST'});
-                        }
-                    } else {
-                        window.location.href = '/templates/auth/login.html';
+            fetch('/api/me').then(r => r.json()).then(data => {
+                if (data.user_id) {
+                    if (confirm('Logout?')) {
+                        fetch('/api/logout', {method: 'POST'}).then(() => location.reload());
                     }
-                })
-                .then(response => {
-                    if (response && response.ok) {
-                        location.reload();
-                    }
-                })
-                .catch(err => {
-                    console.error('Profile action error:', err);
-                    alert('An error occurred. Please try again.');
-                });
+                } else {
+                    window.location.href = '/templates/auth/login.html';
+                }
+            });
         }
 
         // Page Navigation
@@ -1065,97 +1060,35 @@
             if (!file.type.startsWith('image/')) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                console.log('handleFile: file loaded');
                 imagePreview.src = e.target.result;
                 imagePreview.style.display = 'block';
                 uploadPrompt.style.display = 'none';
                 removeBtn.style.display = 'block';
                 analyzeBtn.disabled = false;
                 isImageUploaded = true;
-                try { document.getElementById('capture-btn').style.display = 'none'; } catch(e) {}
-                try { document.getElementById('switch-camera-btn').style.display = 'none'; } catch(e) {}
-                try { document.getElementById('use-camera-btn').style.display = 'inline-flex'; } catch(e) {}
             };
             reader.readAsDataURL(file);
         }
 
-        async function startCamera(deviceId = null) {
+        async function startCamera() {
             try {
-                // stop existing stream if any
-                if (stream) {
-                    stream.getTracks().forEach(t => t.stop());
-                    stream = null;
-                }
-
-                // try to enumerate video input devices
-                try {
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    videoDevices = devices.filter(d => d.kind === 'videoinput');
-                } catch (e) {
-                    videoDevices = [];
-                }
-
-                // choose constraints
-                let constraints = {};
-                if (deviceId) {
-                    constraints = { video: { deviceId: { exact: deviceId } } };
-                } else if (videoDevices.length > 0) {
-                    // prefer back/rear camera when label available
-                    let preferredIndex = videoDevices.findIndex(d => /back|rear|environment|wide|ultra/i.test(d.label));
-                    if (preferredIndex === -1) preferredIndex = 0;
-                    currentVideoDeviceIndex = preferredIndex;
-                    constraints = { video: { deviceId: { exact: videoDevices[currentVideoDeviceIndex].deviceId } } };
-                } else {
-                    constraints = { video: true };
-                }
-
-                console.log('startCamera: requesting getUserMedia, deviceId=', deviceId);
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 cameraFeed.srcObject = stream;
                 cameraFeed.style.display = 'block';
                 cameraFeed.play();
                 uploadPrompt.style.display = 'none';
                 removeBtn.style.display = 'block';
-
-                // show capture and switch controls
-                document.getElementById('capture-btn').style.display = 'inline-flex';
-                document.getElementById('switch-camera-btn').style.display = (videoDevices.length > 1) ? 'inline-flex' : 'none';
-                document.getElementById('use-camera-btn').style.display = 'none';
             } catch (err) {
-                // fallback: try facingMode environment
-                try {
-                    console.warn('startCamera: primary constraints failed, trying facingMode=environment');
-                    if (stream) stream.getTracks().forEach(t => t.stop());
-                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                    cameraFeed.srcObject = stream;
-                    cameraFeed.style.display = 'block';
-                    cameraFeed.play();
-                    uploadPrompt.style.display = 'none';
-                    removeBtn.style.display = 'block';
-                    document.getElementById('capture-btn').style.display = 'inline-flex';
-                    document.getElementById('switch-camera-btn').style.display = 'none';
-                    document.getElementById('use-camera-btn').style.display = 'none';
-                } catch (e) {
-                    alert("Camera not available");
-                }
+                alert("Camera not available");
             }
         }
 
         function captureImage() {
             const canvas = document.createElement('canvas');
-            // capture square center and resize to 224x224 (model input)
-            canvas.width = 224;
-            canvas.height = 224;
-            const ctx = canvas.getContext('2d');
-            const vw = cameraFeed.videoWidth;
-            const vh = cameraFeed.videoHeight;
-            const side = Math.min(vw, vh);
-            const sx = (vw - side) / 2;
-            const sy = (vh - side) / 2;
-            ctx.drawImage(cameraFeed, sx, sy, side, side, 0, 0, 224, 224);
-            console.log('captureImage: capturing');
+            canvas.width = cameraFeed.videoWidth;
+            canvas.height = cameraFeed.videoHeight;
+            canvas.getContext('2d').drawImage(cameraFeed, 0, 0);
             if (stream) stream.getTracks().forEach(t => t.stop());
-            stream = null;
             imagePreview.src = canvas.toDataURL('image/jpeg');
             cameraFeed.style.display = 'none';
             imagePreview.style.display = 'block';
@@ -1163,40 +1096,6 @@
             removeBtn.style.display = 'block';
             analyzeBtn.disabled = false;
             isImageUploaded = true;
-            // hide capture controls, allow re-open camera
-            document.getElementById('capture-btn').style.display = 'none';
-            document.getElementById('switch-camera-btn').style.display = 'none';
-            document.getElementById('use-camera-btn').style.display = 'inline-flex';
-        }
-
-        async function switchCamera() {
-            try {
-                console.log('switchCamera: attempting to switch');
-                if (!navigator.mediaDevices) return;
-                // if we have device list, cycle through them
-                if (videoDevices && videoDevices.length > 1) {
-                    currentVideoDeviceIndex = (currentVideoDeviceIndex + 1) % videoDevices.length;
-                    const nextId = videoDevices[currentVideoDeviceIndex].deviceId;
-                    console.log('switchCamera: switching to deviceId=', nextId);
-                    await startCamera(nextId);
-                    return;
-                }
-                // fallback: try toggling facingMode
-                if (stream) stream.getTracks().forEach(t => t.stop());
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                    cameraFeed.srcObject = stream;
-                    cameraFeed.play();
-                } catch (e) {
-                    try {
-                        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-                        cameraFeed.srcObject = stream;
-                        cameraFeed.play();
-                    } catch (err) {
-                        console.warn('switchCamera: no alternate camera available');
-                    }
-                }
-            } catch (e) {}
         }
 
         function resetScanner() {
@@ -1210,49 +1109,26 @@
             fileInput.value = '';
             isImageUploaded = false;
             document.getElementById('results-panel').style.display = 'none';
-            // reset camera controls
-            try { document.getElementById('capture-btn').style.display = 'none'; } catch(e) {}
-            try { document.getElementById('switch-camera-btn').style.display = 'none'; } catch(e) {}
-            try { document.getElementById('use-camera-btn').style.display = 'inline-flex'; } catch(e) {}
-            console.log('resetScanner: reset complete');
         }
 
         async function analyzeImage() {
-            if (!isImageUploaded) {
-                showError('Please upload an image first');
-                return;
-            }
+            if (!isImageUploaded) return;
 
-            analyzeBtn.disabled = true;
-            analyzeBtn.textContent = 'Analyzing...';
+            analyzeBtn.style.display = 'none';
             document.getElementById('loader').style.display = 'block';
             document.getElementById('results-panel').style.display = 'none';
 
             try {
-                console.log('analyzeImage: preparing image for upload');
                 const blob = await fetch(imagePreview.src).then(res => res.blob());
                 const formData = new FormData();
                 formData.append('image', blob, 'eye_scan.jpg');
 
-                const predictUrl = '/api/predict';
-                console.log('analyzeImage: sending to', predictUrl);
-
-                const response = await fetch(predictUrl, {
+                const response = await fetch('http://127.0.0.1:5000/predict', {
                     method: 'POST',
                     body: formData
                 });
 
-                const data = await response.json();
-
-                if (!response.ok) {
-                    console.error('analyzeImage: server returned', response.status, data);
-                    const errorMsg = data.error || 'Analysis failed';
-                    showError(errorMsg + (data.details ? '\n' + data.details : ''));
-                    return;
-                }
-
-                const scores = data.scores || data;
-                console.log('analyzeImage: received scores', scores);
+                const scores = await response.json();
 
                 let finalScore = 0;
                 if (currentTab === 'exudate') finalScore = scores.diabetic_retinopathy || 0;
@@ -1260,21 +1136,14 @@
                 else if (currentTab === 'glaucoma') finalScore = scores.glaucoma || 0;
                 else if (currentTab === 'conjunctivitis') finalScore = scores.conjunctivitis || 0;
 
-                console.log('analyzeImage: finalScore for', currentTab, finalScore);
                 generateResults(finalScore);
 
             } catch (err) {
-                console.error('analyzeImage: error', err);
-                showError('Failed to connect to server. Please ensure the app is running.');
+                alert("Server Error! Is the app running?");
             } finally {
                 document.getElementById('loader').style.display = 'none';
-                analyzeBtn.disabled = false;
-                analyzeBtn.textContent = 'Analyze Image';
+                analyzeBtn.style.display = 'inline-flex';
             }
-        }
-
-        function showError(message) {
-            alert('Error: ' + message);
         }
 
         function generateResults(score) {
@@ -1285,7 +1154,7 @@
             document.getElementById('res-confidence-text').textContent = conf + '%';
             document.getElementById('res-confidence-text').style.color = activeColor;
             document.getElementById('res-confidence-bar').style.width = conf + '%';
-            document.getElementById('res-confidence-bar').style.background = activeColor;
+            document.getElementById('res-confidence-bar').style.background = 'linear-gradient(90deg, ' + activeColor + ', #fff)';
 
             let severity = 'None';
             let rec = 'Maintain routine screening schedule.';
@@ -1323,37 +1192,24 @@
         async function loadHistory() {
             try {
                 const res = await fetch('/api/history');
-                if (!res.ok) {
-                    if (res.status === 401) {
-                        // Not logged in
-                        const tbody = document.getElementById('history-body');
-                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Please <a href="/templates/auth/login.html" style="color: var(--accent-blue);">login</a> to view your scan history</td></tr>';
-                        return;
+                if (res.ok) {
+                    const data = await res.json();
+                    const tbody = document.getElementById('history-body');
+                    if (data.scans.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No scans yet. <a href="#scanner" style="color: var(--accent-blue);">Start scanning</a></td></tr>';
+                    } else {
+                        tbody.innerHTML = data.scans.map(s => 
+                            '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">' +
+                            '<td style="padding: 12px 10px;">' + new Date(s.created_at).toLocaleDateString() + '</td>' +
+                            '<td style="padding: 12px 10px; text-transform: capitalize;">' + s.module.replace('_', ' ') + '</td>' +
+                            '<td style="padding: 12px 10px; color: ' + (s.result === 'Detected' ? 'var(--accent-red)' : 'var(--accent-green)') + ';">' + s.result + '</td>' +
+                            '<td style="padding: 12px 10px;">' + s.severity + '</td>' +
+                            '<td style="padding: 12px 10px;">' + s.confidence.toFixed(1) + '%</td>' +
+                            '</tr>'
+                        ).join('');
                     }
-                    throw new Error('Failed to load history');
                 }
-                
-                const data = await res.json();
-                const tbody = document.getElementById('history-body');
-                
-                if (!data.scans || data.scans.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No scans yet. <a href="#scanner" style="color: var(--accent-blue);">Start scanning</a></td></tr>';
-                } else {
-                    tbody.innerHTML = data.scans.map(s => 
-                        '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">' +
-                        '<td style="padding: 12px 10px;">' + new Date(s.created_at).toLocaleDateString() + '</td>' +
-                        '<td style="padding: 12px 10px; text-transform: capitalize;">' + s.module.replace('_', ' ') + '</td>' +
-                        '<td style="padding: 12px 10px; color: ' + (s.result === 'Detected' ? 'var(--accent-red)' : 'var(--accent-green)') + ';">' + s.result + '</td>' +
-                        '<td style="padding: 12px 10px;">' + s.severity + '</td>' +
-                        '<td style="padding: 12px 10px;">' + (s.confidence || 0).toFixed(1) + '%</td>' +
-                        '</tr>'
-                    ).join('');
-                }
-            } catch (e) {
-                console.error('History load error:', e);
-                const tbody = document.getElementById('history-body');
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--accent-red);">Failed to load history. Please try again.</td></tr>';
-            }
+            } catch (e) {}
         }
 
         // FAQ
@@ -1418,10 +1274,7 @@
             if (!message) return;
 
             const messagesDiv = document.getElementById('iris-messages');
-            
-            // Sanitize user input to prevent XSS
-            const sanitizedMessage = escapeHtml(message);
-            messagesDiv.innerHTML += '<div class="iris-message user">' + sanitizedMessage + '</div>';
+            messagesDiv.innerHTML += '<div class="iris-message user">' + message + '</div>';
             input.value = '';
 
             messagesDiv.innerHTML += '<div class="iris-message bot" id="typing">Typing...</div>';
@@ -1433,28 +1286,14 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({message})
                 });
-                
                 const data = await res.json();
-                
-                const typingEl = document.getElementById('typing');
-                if (typingEl) typingEl.remove();
-                
-                // Sanitize bot response
-                const sanitizedResponse = escapeHtml(data.response);
-                messagesDiv.innerHTML += '<div class="iris-message bot">' + sanitizedResponse + '</div>';
+                document.getElementById('typing').remove();
+                messagesDiv.innerHTML += '<div class="iris-message bot">' + data.response + '</div>';
             } catch (e) {
-                console.error('Chat error:', e);
-                const typingEl = document.getElementById('typing');
-                if (typingEl) typingEl.remove();
-                messagesDiv.innerHTML += '<div class="iris-message bot">Sorry, I\'m having trouble responding. Please check your connection and try again.</div>';
+                document.getElementById('typing').remove();
+                messagesDiv.innerHTML += '<div class="iris-message bot">Sorry, I\'m having trouble responding.</div>';
             }
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
         }
 
         // Speech Recognition

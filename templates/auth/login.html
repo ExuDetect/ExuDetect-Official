@@ -86,12 +86,7 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        .auth-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .auth-btn:hover:not(:disabled) {
+        .auth-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
         }
@@ -169,42 +164,29 @@
             var password = document.getElementById('password').value;
             var errorMsg = document.getElementById('error-msg');
             var successMsg = document.getElementById('success-msg');
-            var submitBtn = this.querySelector('.auth-btn');
             
             errorMsg.style.display = 'none';
             successMsg.style.display = 'none';
-            
-            // Disable button and show loading
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Signing in...';
             
             fetch('/api/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: username, password: password})
             })
-            .then(function(res) {
-                return res.json().then(function(data) {
-                    return {ok: res.ok, data: data};
-                });
-            })
-            .then(function(result) {
-                if (result.ok && result.data.message) {
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.message) {
                     successMsg.textContent = 'Login successful! Redirecting...';
                     successMsg.style.display = 'block';
                     setTimeout(function() { window.location.href = '/'; }, 1000);
                 } else {
-                    errorMsg.textContent = result.data.error || 'Login failed';
+                    errorMsg.textContent = data.error || 'Login failed';
                     errorMsg.style.display = 'block';
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Sign In';
                 }
             })
             .catch(function(err) {
-                errorMsg.textContent = 'Connection error. Please check your internet and try again.';
+                errorMsg.textContent = 'Connection error. Please try again.';
                 errorMsg.style.display = 'block';
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Sign In';
             });
         });
     </script>
