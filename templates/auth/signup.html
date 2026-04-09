@@ -86,7 +86,12 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        .auth-btn:hover {
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .auth-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
         }
@@ -169,29 +174,55 @@
             var password = document.getElementById('password').value;
             var errorMsg = document.getElementById('error-msg');
             var successMsg = document.getElementById('success-msg');
+            var submitBtn = this.querySelector('.auth-btn');
+            
+            // Client-side validation
+            if (username.length < 3) {
+                errorMsg.textContent = 'Username must be at least 3 characters';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            if (password.length < 6) {
+                errorMsg.textContent = 'Password must be at least 6 characters';
+                errorMsg.style.display = 'block';
+                return;
+            }
             
             errorMsg.style.display = 'none';
             successMsg.style.display = 'none';
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating account...';
             
             fetch('/api/register', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: username, email: email, password: password})
             })
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                if (data.message) {
-                    successMsg.textContent = 'Account created! Redirecting to login...';
+            .then(function(res) {
+                return res.json().then(function(data) {
+                    return {ok: res.ok, data: data};
+                });
+            })
+            .then(function(result) {
+                if (result.ok && result.data.message) {
+                    successMsg.textContent = 'Account created successfully! Redirecting to login...';
                     successMsg.style.display = 'block';
                     setTimeout(function() { window.location.href = '/auth/login.html'; }, 1500);
                 } else {
-                    errorMsg.textContent = data.error || 'Registration failed';
+                    errorMsg.textContent = result.data.error || 'Registration failed';
                     errorMsg.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Account';
                 }
             })
             .catch(function(err) {
-                errorMsg.textContent = 'Connection error. Please try again.';
+                errorMsg.textContent = 'Connection error. Please check your internet and try again.';
                 errorMsg.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
             });
         });
     </script>
