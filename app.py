@@ -281,13 +281,12 @@ def chat():
         }
 
         payload = {
-            "model": "google/gemma-4-31b-it",
+            "model": "qwen/qwen2.5-coder-32b-instruct",
             "messages": messages,
-            "max_tokens": 16384,
-            "temperature": 1.00,
-            "top_p": 0.95,
+            "max_tokens": 1024,
+            "temperature": 0.2,
+            "top_p": 0.7,
             "stream": NVIDIA_STREAM,
-            "chat_template_kwargs": {"enable_thinking": True},
         }
 
         response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=60, stream=NVIDIA_STREAM)
