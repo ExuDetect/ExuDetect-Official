@@ -11,6 +11,7 @@ from PIL import Image
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
+import json
 from scipy.special import expit as sigmoid  # Sigmoid function for proper normalization
 
 load_dotenv()
@@ -87,9 +88,10 @@ except Exception as e:
     interpreter = None
     output_map = {}
 
-# OpenRouter API for Iris chatbot
-OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
-OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
+# NVIDIA Integrate API for Iris chatbot
+NVIDIA_API_KEY = os.getenv('NVIDIA_API_KEY')
+NVIDIA_API_URL = 'https://integrate.api.nvidia.com/v1/chat/completions'
+NVIDIA_STREAM = False
 
 IRIS_SYSTEM_PROMPT = """You are Iris, an AI eye health assistant for OcuScan. You help users understand eye diseases, symptoms, and general eye health.
 
@@ -269,40 +271,73 @@ def chat():
             messages.append({"role": "assistant", "content": h['bot_response']})
         messages.append({"role": "user", "content": message})
         
-        # Call OpenRouter API
+        # Call NVIDIA Integrate API
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Authorization": f"Bearer {NVIDIA_API_KEY}",
+            "Accept": "text/event-stream" if NVIDIA_STREAM else "application/json",
             "HTTP-Referer": "http://localhost:5000",
             "X-Title": "OcuScan Iris"
         }
-        
+
         payload = {
-            "model": "deepseek/deepseek-chat-v3-0324",
+            "model": "google/gemma-4-31b-it",
             "messages": messages,
-            "max_tokens": 500,
-            "temperature": 0.7
+            "max_tokens": 16384,
+            "temperature": 1.00,
+            "top_p": 0.95,
+            "stream": NVIDIA_STREAM,
+            "chat_template_kwargs": {"enable_thinking": True},
         }
-        
-        response = requests.post(OPENROUTER_API_URL, headers=headers, json=payload, timeout=30)
-        
-        if response.status_code == 200:
-            result = response.json()
-            bot_response = result['choices'][0]['message']['content']
-            
-            # Save to history
-            if user_id:
-                conn = get_db()
-                c = conn.cursor()
-                c.execute('INSERT INTO chat_history (user_id, user_message, bot_response) VALUES (?, ?, ?)',
-                          (user_id, message, bot_response))
-                conn.commit()
-                conn.close()
-            
-            return jsonify({"response": bot_response})
+
+        response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=60, stream=NVIDIA_STREAM)
+
+        # Parse response (support common formats)
+        if NVIDIA_STREAM:
+            collected = []
+            for line in response.iter_lines():
+                if line:
+                    try:
+                        collected.append(line.decode("utf-8"))
+                    except Exception:
+                        collected.append(str(line))
+            try:
+                result = json.loads(collected[-1]) if collected else {}
+            except Exception:
+                result = {"raw": "\n".join(collected)}
         else:
-            print(f"API Error: {response.status_code} - {response.text}")
-            return jsonify({"response": "I'm having trouble responding right now. Please try again."})
+            try:
+                result = response.json()
+            except Exception:
+                result = {"raw": response.text}
+
+        bot_response = None
+        if isinstance(result, dict):
+            if 'choices' in result and result['choices']:
+                ch = result['choices'][0]
+                if isinstance(ch, dict) and 'message' in ch and isinstance(ch['message'], dict) and 'content' in ch['message']:
+                    bot_response = ch['message']['content']
+                elif 'text' in ch:
+                    bot_response = ch.get('text')
+            if not bot_response:
+                if 'output' in result and isinstance(result['output'], str):
+                    bot_response = result['output']
+                elif 'content' in result and isinstance(result['content'], str):
+                    bot_response = result['content']
+
+        if not bot_response:
+            bot_response = str(result)
+
+        # Save to history
+        if user_id:
+            conn = get_db()
+            c = conn.cursor()
+            c.execute('INSERT INTO chat_history (user_id, user_message, bot_response) VALUES (?, ?, ?)',
+                      (user_id, message, bot_response))
+            conn.commit()
+            conn.close()
+
+        return jsonify({"response": bot_response})
             
     except Exception as e:
         print(f"Chat error: {e}")
