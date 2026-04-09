@@ -214,7 +214,7 @@ def predict():
             "cataract": float(sigmoid((raw_cataract - 0.1) * 10)),
             "conjunctivitis": float(sigmoid((raw_conjunctivitis - 0.1) * 10)),
             "diabetic_retinopathy": float(sigmoid((raw_retinopathy - 0.1) * 25)),
-            "glaucoma": float(sigmoid((raw_glaucoma - 0.1) * 10))
+            "glaucoma": float(sigmoid((raw_glaucoma - 0.1) * 35))
         }
         
         # Ensure valid range without capping
