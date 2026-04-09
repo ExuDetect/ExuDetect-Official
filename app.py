@@ -11,6 +11,7 @@ from PIL import Image
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
+from scipy.special import expit as sigmoid  # Sigmoid function for proper normalization
 
 load_dotenv()
 
@@ -204,19 +205,23 @@ def predict():
         raw_retinopathy = float(interpreter.get_tensor(output_map['diabetic_retinopathy'])[0][0])
         raw_glaucoma = float(interpreter.get_tensor(output_map['glaucoma'])[0][0])
         
-        # Calibration
+        print(f"📊 RAW MODEL OUTPUTS - Cat: {raw_cataract:.6f}, Conj: {raw_conjunctivitis:.6f}, Retino: {raw_retinopathy:.6f}, Glaucoma: {raw_glaucoma:.6f}")
+        
+        # Adaptive Calibration - Using sigmoid with better parameters
+        # The model outputs small values, so we use a lower offset (0.1) and higher gain (10)
+        # This amplifies small differences while keeping values in 0-1 range
         res = {
-            "cataract": raw_cataract * 15,
-            "conjunctivitis": raw_conjunctivitis * 5,
-            "diabetic_retinopathy": raw_retinopathy * 45,
-            "glaucoma": raw_glaucoma * 10
+            "cataract": float(sigmoid((raw_cataract - 0.1) * 10)),
+            "conjunctivitis": float(sigmoid((raw_conjunctivitis - 0.1) * 10)),
+            "diabetic_retinopathy": float(sigmoid((raw_retinopathy - 0.1) * 25)),
+            "glaucoma": float(sigmoid((raw_glaucoma - 0.1) * 10))
         }
         
+        # Ensure valid range without capping
         for key in res:
-            if res[key] > 0.98:
-                res[key] = 0.985
-            elif res[key] < 0.0:
-                res[key] = 0.0
+            res[key] = max(0.0, min(1.0, res[key]))
+        
+        print(f"✅ CALIBRATED SCORES - Cat: {res['cataract']:.4f}, Conj: {res['conjunctivitis']:.4f}, Retino: {res['diabetic_retinopathy']:.4f}, Glaucoma: {res['glaucoma']:.4f}")
         
         # Save to history if logged in
         if user_id:
