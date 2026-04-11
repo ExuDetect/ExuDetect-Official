@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan — EXU DETECT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-light: #F7F9FC;
+            --bg-dark: #0B1120;
+            --primary: #0057FF;
+            --secondary: #00C896;
+            --danger: #FF3B3B;
+            --warning: #F5A623;
+            --text-primary: #0B1120;
+            --text-muted: #6B7A99;
+            --border: #E2E8F0;
+            --card-bg: #FFFFFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .scan-layout {
+            display: grid;
+            grid-template-columns: 60% 40%;
+            min-height: 100vh;
+        }
+
+        /* Left Panel - Image Input */
+        .image-panel {
+            padding: 40px;
+            border-right: 1px solid var(--border);
+            background: var(--card-bg);
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 24px;
+            transition: color 200ms ease-in-out;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .panel-header {
+            margin-bottom: 32px;
+        }
+
+        .panel-header h2 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .panel-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .scan-info-alert {
+            background: #EEF2FF;
+            border: 1px solid #6366F1;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #4338CA;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .scan-info-alert .alert-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .scan-info-alert strong {
+            color: #4338CA;
+        }
+
+        .tab-switcher {
+            display: flex;
+            gap: 0;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 14px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            position: relative;
+            transition: color 200ms ease-in-out;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Camera */
+        .camera-container {
+            position: relative;
+            background: var(--bg-dark);
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+        }
+
+        #camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--primary);
+        }
+
+        .corner-tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+        .corner-tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 80px; left: 20px; border-right: none; border-top: none; }
+        .corner-br { bottom: 80px; right: 20px; border-left: none; border-top: none; }
+
+        .camera-indicators {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .camera-toggle {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 200ms ease-in-out;
+        }
+
+        .camera-toggle:hover {
+            background: #fff;
+        }
+
+        .camera-denied {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #fff;
+            text-align: center;
+            gap: 16px;
+        }
+
+        .camera-denied svg {
+            width: 64px;
+            height: 64px;
+            opacity: 0.5;
+        }
+
+        .capture-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 16px;
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 200ms ease-in-out;
+        }
+
+        .capture-btn:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        /* Upload */
+        .dropzone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 200ms ease-in-out;
+            background: var(--bg-light);
+        }
+
+        .dropzone:hover,
+        .dropzone.dragover {
+            border-color: var(--primary);
+            background: rgba(0, 87, 255, 0.05);
+        }
+
+        .dropzone-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .dropzone h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .dropzone p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .file-info {
+            display: none;
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--bg-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-info.show {
+            display: flex;
+        }
+
+        .file-details {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .file-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .file-size {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-family: 'DM Mono', monospace;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            transition: transform 200ms ease-in-out;
+        }
+
+        .remove-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .accepted-formats {
+            margin-top: 12px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-family: 'DM Mono', monospace;
+        }
+
+        /* Right Panel - Controls */
+        .controls-panel {
+            padding: 40px;
+            background: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .patient-badge {
+            background: linear-gradient(135deg, rgba(0, 87, 255, 0.05), rgba(0, 200, 150, 0.05));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .patient-badge h3 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'DM Mono', monospace;
+        }
+
+        .preview-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-image {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .preview-image.show {
+            display: block;
+        }
+
+        .retake-btn {
+            background: none;
+            border: 1px solid var(--border);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 24px;
+            transition: all 200ms ease-in-out;
+        }
+
+        .retake-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 200ms ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            background: #0044cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 87, 255, 0.3);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .analyze-btn.loading {
+            background: var(--bg-light);
+            color: var(--text-muted);
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--primary);
+            width: 0;
+            transition: width 100ms linear;
+        }
+
+        .encryption-note {
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .error-banner {
+            display: none;
+            background: rgba(255, 59, 59, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+
+        .error-banner.show {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .retry-btn {
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Chatbot */
+        #iris-widget {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+        }
+
+        #iris-minimized {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 87, 255, 0.4);
+            transition: all 200ms ease-in-out;
+        }
+
+        #iris-minimized:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 24px rgba(0, 87, 255, 0.5);
+        }
+
+        #iris-maximized {
+            width: 380px;
+            height: 520px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .iris-header {
+            background: var(--primary);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+        }
+
+        .iris-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .iris-avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .iris-controls button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 18px;
+        }
+
+        .iris-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--bg-light);
+        }
+
+        .iris-message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .iris-message.bot {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .iris-message.user {
+            background: var(--primary);
+            color: #fff;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .iris-input-area {
+            padding: 16px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .iris-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .iris-input:focus {
+            border-color: var(--primary);
+        }
+
+        .iris-btn {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .scan-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .image-panel {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .camera-container {
+                aspect-ratio: 16/9;
+            }
+
+            #iris-maximized {
+                width: calc(100vw - 32px);
+                height: 70vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scan-layout">
+        <!-- Left Panel - Image Input -->
+        <div class="image-panel">
+            <a href="/scan/details" class="back-link">← Edit patient details</a>
+            
+            <div class="panel-header">
+                <h2>Capture Retina Image</h2>
+                <p>Use your camera or upload an eye scan for AI analysis</p>
+            </div>
+            
+            <div class="scan-info-alert">
+                <span class="alert-icon">ℹ️</span>
+                <span>Upload an <strong>eye photo</strong> or <strong>retinal fundus scan</strong>. Ensure the eye/retina is clearly visible.</span>
+            </div>
+            
+            <div class="tab-switcher">
+                <button class="tab-btn active" data-tab="camera">📷 Camera</button>
+                <button class="tab-btn" data-tab="upload">📁 Upload</button>
+            </div>
+
+            <!-- Camera Tab -->
+            <div id="camera-tab" class="tab-content active">
+                <div class="camera-container">
+                    <video id="camera-feed" autoplay playsinline></video>
+                    <div class="camera-overlay">
+                        <div class="corner corner-tl"></div>
+                        <div class="corner corner-tr"></div>
+                        <div class="corner corner-bl"></div>
+                        <div class="corner corner-br"></div>
+                    </div>
+                    <div class="camera-indicators">
+                        <div class="live-indicator">
+                            <div class="live-dot"></div>
+                            <span>LIVE</span>
+                        </div>
+                        <button class="camera-toggle" onclick="toggleCamera()">🤳 Front</button>
+                    </div>
+                    <div class="camera-denied" id="camera-denied">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 1l22 22M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-2h6l2 2h4a2 2 0 0 1 2 2v11"/>
+                        </svg>
+                        <div>
+                            <h3>Camera access required</h3>
+                            <p>Please grant camera permissions to continue</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="startCamera()">Grant Access</button>
+                    </div>
+                </div>
+                <button class="capture-btn" onclick="captureFrame()">Capture Frame</button>
+            </div>
+
+            <!-- Upload Tab -->
+            <div id="upload-tab" class="tab-content">
+                <div class="dropzone" id="dropzone">
+                    <div class="dropzone-icon">☁️</div>
+                    <h3>Drag image here or click to browse</h3>
+                    <p>Upload a retinal image for AI analysis</p>
+                    <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.webp" style="display: none;">
+                </div>
+                <div class="accepted-formats">Accepted: JPG, PNG, WEBP (max 10MB) • Eye photos & retinal fundus images</div>
+                <div class="file-info" id="file-info">
+                    <div class="file-details">
+                        <img id="file-thumb" class="file-thumb" src="" alt="Preview">
+                        <div>
+                            <div class="file-name" id="file-name"></div>
+                            <div class="file-size" id="file-size"></div>
+                        </div>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile()">✕</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Controls -->
+        <div class="controls-panel">
+            <div class="patient-badge">
+                <h3>Patient</h3>
+                <div class="badge-row">
+                    <span class="badge" id="patient-name">—</span>
+                    <span class="badge" id="patient-blood">—</span>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <img id="preview-image" class="preview-image" alt="Preview">
+                <button class="retake-btn" id="retake-btn" style="display: none;" onclick="retakeImage()">Retake</button>
+                
+                <button class="analyze-btn" id="analyze-btn" disabled onclick="analyzeImage()">
+                    <div class="progress-bar" id="progress-bar"></div>
+                    <span id="btn-text">Run Analysis →</span>
+                </button>
+
+                <div class="encryption-note">
+                    <span>🔒</span>
+                    <span>Your data is encrypted and never stored without consent.</span>
+                </div>
+
+                <div class="error-banner" id="error-banner">
+                    <span id="error-message">Analysis failed</span>
+                    <button class="retry-btn" onclick="analyzeImage()">Retry</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="capture-canvas" style="display: none;"></canvas>
+
+    <!-- Chatbot -->
+    <div id="iris-widget">
+        <div id="iris-maximized" style="display: none;">
+            <div class="iris-header">
+                <div class="iris-header-info">
+                    <img src="/static/eye-iris.png" alt="Iris" class="iris-avatar-img">
+                    <div>
+                        <p class="iris-name" style="font-weight: 700;">Iris</p>
+                        <p style="font-size: 12px; opacity: 0.9;">AI Eye Health Assistant</p>
+                    </div>
+                </div>
+                <div class="iris-controls">
+                    <button onclick="toggleIris('minimize')">−</button>
+                    <button onclick="toggleIris('close')">×</button>
+                </div>
+            </div>
+            <div class="iris-messages" id="iris-messages">
+                <div class="iris-message bot">👋 Hello! I'm Iris, your AI eye health assistant. How can I help you today?</div>
+            </div>
+            <div class="iris-input-area">
+                <input type="text" class="iris-input" id="iris-input" placeholder="Ask about eye health..." onkeypress="if(event.key==='Enter') sendToIris()">
+                <button class="iris-btn" onclick="sendToIris()">Send</button>
+            </div>
+        </div>
+        <button id="iris-minimized" onclick="toggleIris('maximize')">💬</button>
+    </div>
+
+    <script>
+        let stream = null;
+        let currentFacing = 'user';
+        let imageData = null;
+
+        // Chatbot functions
+        function toggleIris(action) {
+            const maximized = document.getElementById('iris-maximized');
+            const minimized = document.getElementById('iris-minimized');
+            if (action === 'maximize') {
+                maximized.style.display = 'flex';
+                minimized.style.display = 'none';
+            } else {
+                maximized.style.display = 'none';
+                minimized.style.display = 'block';
+            }
+        }
+
+        async function sendToIris() {
+            const input = document.getElementById('iris-input');
+            const message = input.value.trim();
+            if (!message) return;
+            const messagesDiv = document.getElementById('iris-messages');
+            messagesDiv.innerHTML += `<div class="iris-message user">${message}</div>`;
+            input.value = '';
+            messagesDiv.innerHTML += '<div class="iris-message bot" id="typing">Typing...</div>';
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message})
+                });
+                const data = await res.json();
+                document.getElementById('typing').remove();
+                messagesDiv.innerHTML += `<div class="iris-message bot">${data.response}</div>`;
+            } catch (e) {
+                document.getElementById('typing').remove();
+                messagesDiv.innerHTML += '<div class="iris-message bot">Sorry, I\'m having trouble responding.</div>';
+            }
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
+            });
+        });
+
+        // Load patient data
+        async function loadPatientData() {
+            try {
+                const res = await fetch('/api/patient-data');
+                const data = await res.json();
+                if (data.patient) {
+                    document.getElementById('patient-name').textContent = data.patient.full_name || '—';
+                    document.getElementById('patient-blood').textContent = data.patient.blood_group || '—';
+                }
+            } catch (err) {
+                console.error('Error loading patient data:', err);
+            }
+        }
+
+        async function startCamera() {
+            try {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacing }
+                });
+                const video = document.getElementById('camera-feed');
+                video.srcObject = stream;
+                video.style.display = 'block';
+                document.getElementById('camera-denied').style.display = 'none';
+            } catch (err) {
+                console.error('Camera error:', err);
+                document.getElementById('camera-denied').style.display = 'flex';
+            }
+        }
+
+        function toggleCamera() {
+            currentFacing = currentFacing === 'user' ? 'environment' : 'user';
+            const btn = document.querySelector('.camera-toggle');
+            btn.textContent = currentFacing === 'user' ? '🤳 Front' : '📸 Rear';
+            startCamera();
+        }
+
+        function captureFrame() {
+            const video = document.getElementById('camera-feed');
+            const canvas = document.getElementById('capture-canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            imageData = canvas.toDataURL('image/jpeg');
+            showPreview(imageData);
+        }
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                alert('Invalid file type. Please upload JPG, PNG, or WEBP.');
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File too large. Maximum size is 10MB.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imageData = e.target.result;
+                document.getElementById('file-thumb').src = imageData;
+                document.getElementById('file-name').textContent = file.name;
+                document.getElementById('file-size').textContent = (file.size / 1024).toFixed(1) + ' KB';
+                document.getElementById('file-info').classList.add('show');
+                showPreview(imageData);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeFile() {
+            imageData = null;
+            document.getElementById('file-info').classList.remove('show');
+            document.getElementById('file-input').value = '';
+            hidePreview();
+        }
+
+        function showPreview(src) {
+            const preview = document.getElementById('preview-image');
+            preview.src = src;
+            preview.classList.add('show');
+            document.getElementById('retake-btn').style.display = 'block';
+            document.getElementById('analyze-btn').disabled = false;
+        }
+
+        function hidePreview() {
+            const preview = document.getElementById('preview-image');
+            preview.classList.remove('show');
+            document.getElementById('retake-btn').style.display = 'none';
+            document.getElementById('analyze-btn').disabled = true;
+        }
+
+        function retakeImage() {
+            imageData = null;
+            hidePreview();
+            removeFile();
+        }
+
+        async function analyzeImage() {
+            if (!imageData) return;
+            const btn = document.getElementById('analyze-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const btnText = document.getElementById('btn-text');
+            const errorBanner = document.getElementById('error-banner');
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+            btnText.textContent = 'Analyzing…';
+            errorBanner.classList.remove('show');
+
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = progress + '%';
+            }, 100);
+
+            try {
+                const response = await fetch(imageData);
+                const blob = await response.blob();
+                const formData = new FormData();
+                formData.append('image', blob, 'scan.jpg');
+
+                const res = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+
+                if (data.error) {
+                    if (data.warning) {
+                        document.getElementById('error-message').textContent = data.error;
+                        // Add suggestion below error message if available
+                        if (data.suggestion) {
+                            let suggestion = document.getElementById('error-suggestion');
+                            if (!suggestion) {
+                                suggestion = document.createElement('div');
+                                suggestion.id = 'error-suggestion';
+                                suggestion.style.cssText = 'color: #6B7A99; font-size: 13px; margin-top: 8px;';
+                                errorBanner.insertBefore(suggestion, errorBanner.querySelector('.retry-btn'));
+                            }
+                            suggestion.textContent = data.suggestion;
+                        }
+                        errorBanner.classList.add('show');
+                        clearInterval(progressInterval);
+                        btn.classList.remove('loading');
+                        btn.disabled = false;
+                        btnText.textContent = 'Run Analysis →';
+                        progressBar.style.width = '0';
+                        return;
+                    }
+                    throw new Error(data.error);
+                }
+
+                sessionStorage.setItem('lastScanResult', JSON.stringify(data));
+                setTimeout(() => {
+                    window.location.href = '/results';
+                }, 500);
+
+            } catch (err) {
+                clearInterval(progressInterval);
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                btnText.textContent = 'Run Analysis →';
+                progressBar.style.width = '0';
+                document.getElementById('error-message').textContent = err.message || 'Analysis failed';
+                errorBanner.classList.add('show');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            startCamera();
+            loadPatientData();
+        });
+    </script>
+</body>
+</html>

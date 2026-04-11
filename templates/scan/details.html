@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Details — EXU DETECT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-light: #F7F9FC;
+            --bg-dark: #0B1120;
+            --primary: #0057FF;
+            --secondary: #00C896;
+            --danger: #FF3B3B;
+            --warning: #F5A623;
+            --text-primary: #0B1120;
+            --text-muted: #6B7A99;
+            --border: #E2E8F0;
+            --card-bg: #FFFFFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .page-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            max-width: 640px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .form-header {
+            padding: 48px 48px 0;
+            background: linear-gradient(135deg, rgba(0, 87, 255, 0.05), rgba(0, 200, 150, 0.05));
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 32px;
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 24px;
+            transition: color 200ms ease-in-out;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .form-header h1 {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* Progress Stepper */
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 48px 0;
+            gap: 0;
+            background: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: calc(50% + 20px);
+            width: calc(100% - 40px);
+            height: 2px;
+            background: var(--border);
+            z-index: 0;
+        }
+
+        .step.active:not(:last-child)::after,
+        .step.completed:not(:last-child)::after {
+            background: var(--primary);
+        }
+
+        .step-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 1;
+            transition: all 200ms ease-in-out;
+        }
+
+        .step.active .step-dot {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 87, 255, 0.3);
+        }
+
+        .step.completed .step-dot {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: #fff;
+        }
+
+        .step-label {
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .step.active .step-label {
+            color: var(--primary);
+        }
+
+        /* Form */
+        .form-body {
+            padding: 40px 48px;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            transition: all 200ms ease-in-out;
+            background: var(--card-bg);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.1);
+        }
+
+        .form-group label {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 15px;
+            pointer-events: none;
+            transition: all 200ms ease-in-out;
+            background: var(--card-bg);
+            padding: 0 4px;
+        }
+
+        .form-group input:focus ~ label,
+        .form-group input:not(:placeholder-shown) ~ label,
+        .form-group select:focus ~ label,
+        .form-group select:valid ~ label {
+            top: 0;
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .form-group .valid-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary);
+            display: none;
+        }
+
+        .form-group.valid .valid-icon {
+            display: block;
+        }
+
+        .form-group.valid input {
+            border-color: var(--secondary);
+        }
+
+        .error-text {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .error-text.show {
+            display: block;
+        }
+
+        /* Gender Segmented Control */
+        .gender-control {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .gender-group {
+            margin-bottom: 24px;
+        }
+
+        .gender-option {
+            position: relative;
+        }
+
+        .gender-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .gender-option label {
+            display: block;
+            padding: 14px;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 200ms ease-in-out;
+            position: relative;
+            background: var(--card-bg);
+            z-index: 1;
+        }
+
+        .gender-option input[type="radio"]:checked + label {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .gender-option label:hover {
+            border-color: var(--primary);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 200ms ease-in-out;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: #0044cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 87, 255, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Info Section */
+        .info-section {
+            margin-top: 40px;
+            padding: 32px;
+            background: linear-gradient(135deg, rgba(0, 87, 255, 0.05), rgba(0, 200, 150, 0.05));
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .info-section h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-section ul {
+            list-style: none;
+        }
+
+        .info-section ul li {
+            padding: 8px 0;
+            color: var(--text-muted);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-section ul li::before {
+            content: '✓';
+            color: var(--secondary);
+            font-weight: 700;
+        }
+
+        /* Chatbot */
+        #iris-widget {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+        }
+
+        #iris-minimized {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 87, 255, 0.4);
+            transition: all 200ms ease-in-out;
+        }
+
+        #iris-minimized:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 24px rgba(0, 87, 255, 0.5);
+        }
+
+        #iris-maximized {
+            width: 380px;
+            height: 520px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .iris-header {
+            background: var(--primary);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+        }
+
+        .iris-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .iris-avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .iris-controls button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 18px;
+        }
+
+        .iris-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--bg-light);
+        }
+
+        .iris-message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .iris-message.bot {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .iris-message.user {
+            background: var(--primary);
+            color: #fff;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .iris-input-area {
+            padding: 16px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .iris-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .iris-input:focus {
+            border-color: var(--primary);
+        }
+
+        .iris-btn {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .form-header,
+            .form-body {
+                padding: 30px 24px;
+            }
+
+            .stepper {
+                padding: 30px 24px 0;
+            }
+
+            .step-label {
+                font-size: 11px;
+            }
+
+            .gender-control {
+                grid-template-columns: 1fr;
+            }
+
+            #iris-maximized {
+                width: calc(100vw - 32px);
+                height: 70vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="form-card">
+            <div class="form-header">
+                <a href="/dashboard" class="back-link">← Back to dashboard</a>
+                <h1>Patient Information</h1>
+                <p>Enter patient details to proceed with the AI screening</p>
+            </div>
+
+            <!-- Progress Stepper -->
+            <div class="stepper">
+                <div class="step active">
+                    <div class="step-dot">1</div>
+                    <div class="step-label">Patient Info</div>
+                </div>
+                <div class="step">
+                    <div class="step-dot">2</div>
+                    <div class="step-label">Scan</div>
+                </div>
+                <div class="step">
+                    <div class="step-dot">3</div>
+                    <div class="step-label">Results</div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <div class="form-body">
+                <form id="patient-form" onsubmit="handleSubmit(event)">
+                    <div class="form-group">
+                        <input type="text" id="full-name" placeholder=" " required>
+                        <label for="full-name">Full Name</label>
+                        <span class="valid-icon">✓</span>
+                        <div class="error-text" id="name-error">Name is required</div>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="number" id="age" placeholder=" " min="1" max="120" required>
+                        <label for="age">Age</label>
+                        <span class="valid-icon">✓</span>
+                        <div class="error-text" id="age-error">Age must be between 1 and 120</div>
+                    </div>
+
+                    <div class="form-group gender-group">
+                        <label for="gender" style="position: static; transform: none; font-size: 14px; color: var(--text-muted); display: block; margin-bottom: 12px; font-weight: 500; background: transparent; padding: 0;">Gender</label>
+                        <div class="gender-control">
+                            <div class="gender-option">
+                                <input type="radio" id="gender-male" name="gender" value="Male" required>
+                                <label for="gender-male">Male</label>
+                            </div>
+                            <div class="gender-option">
+                                <input type="radio" id="gender-female" name="gender" value="Female">
+                                <label for="gender-female">Female</label>
+                            </div>
+                            <div class="gender-option">
+                                <input type="radio" id="gender-other" name="gender" value="Other">
+                                <label for="gender-other">Other</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <select id="blood-group" required>
+                            <option value="" disabled selected></option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                        <label for="blood-group">Blood Group</label>
+                        <span class="valid-icon">✓</span>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="tel" id="phone" placeholder=" ">
+                        <label for="phone">Phone Number (optional)</label>
+                        <span class="valid-icon">✓</span>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submit-btn" disabled>Proceed to Scan →</button>
+                </form>
+
+                <div class="info-section">
+                    <h3>ℹ️ Why we need this information</h3>
+                    <ul>
+                        <li>Patient details help personalize the screening report</li>
+                        <li>Age and gender are relevant for risk assessment</li>
+                        <li>Blood group is recorded for medical reference</li>
+                        <li>All data is encrypted and HIPAA-compliant</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbot -->
+    <div id="iris-widget">
+        <div id="iris-maximized" style="display: none;">
+            <div class="iris-header">
+                <div class="iris-header-info">
+                    <img src="/static/eye-iris.png" alt="Iris" class="iris-avatar-img">
+                    <div>
+                        <p class="iris-name" style="font-weight: 700;">Iris</p>
+                        <p style="font-size: 12px; opacity: 0.9;">AI Eye Health Assistant</p>
+                    </div>
+                </div>
+                <div class="iris-controls">
+                    <button onclick="toggleIris('minimize')">−</button>
+                    <button onclick="toggleIris('close')">×</button>
+                </div>
+            </div>
+            <div class="iris-messages" id="iris-messages">
+                <div class="iris-message bot">👋 Hello! I'm Iris, your AI eye health assistant. How can I help you today?</div>
+            </div>
+            <div class="iris-input-area">
+                <input type="text" class="iris-input" id="iris-input" placeholder="Ask about eye health..." onkeypress="if(event.key==='Enter') sendToIris()">
+                <button class="iris-btn" onclick="sendToIris()">Send</button>
+            </div>
+        </div>
+        <button id="iris-minimized" onclick="toggleIris('maximize')">💬</button>
+    </div>
+
+    <script>
+        // Chatbot functions
+        function toggleIris(action) {
+            const maximized = document.getElementById('iris-maximized');
+            const minimized = document.getElementById('iris-minimized');
+            if (action === 'maximize') {
+                maximized.style.display = 'flex';
+                minimized.style.display = 'none';
+            } else {
+                maximized.style.display = 'none';
+                minimized.style.display = 'block';
+            }
+        }
+
+        async function sendToIris() {
+            const input = document.getElementById('iris-input');
+            const message = input.value.trim();
+            if (!message) return;
+            const messagesDiv = document.getElementById('iris-messages');
+            messagesDiv.innerHTML += `<div class="iris-message user">${message}</div>`;
+            input.value = '';
+            messagesDiv.innerHTML += '<div class="iris-message bot" id="typing">Typing...</div>';
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message})
+                });
+                const data = await res.json();
+                document.getElementById('typing').remove();
+                messagesDiv.innerHTML += `<div class="iris-message bot">${data.response}</div>`;
+            } catch (e) {
+                document.getElementById('typing').remove();
+                messagesDiv.innerHTML += '<div class="iris-message bot">Sorry, I\'m having trouble responding.</div>';
+            }
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Form validation
+        const form = document.getElementById('patient-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const fullName = document.getElementById('full-name');
+        const age = document.getElementById('age');
+        const bloodGroup = document.getElementById('blood-group');
+        const genderRadios = document.querySelectorAll('input[name="gender"]');
+
+        function validateForm() {
+            const isNameValid = fullName.value.trim().length > 0;
+            const ageValue = parseInt(age.value);
+            const isAgeValid = ageValue >= 1 && ageValue <= 120;
+            const isGenderSelected = Array.from(genderRadios).some(r => r.checked);
+            const isBloodGroupSelected = bloodGroup.value !== '';
+
+            fullName.parentElement.classList.toggle('valid', isNameValid);
+            age.parentElement.classList.toggle('valid', isAgeValid);
+            bloodGroup.parentElement.classList.toggle('valid', isBloodGroupSelected);
+
+            submitBtn.disabled = !(isNameValid && isAgeValid && isGenderSelected && isBloodGroupSelected);
+        }
+
+        fullName.addEventListener('input', validateForm);
+        age.addEventListener('input', () => {
+            const ageValue = parseInt(age.value);
+            if (ageValue < 1 || ageValue > 120) {
+                document.getElementById('age-error').classList.add('show');
+            } else {
+                document.getElementById('age-error').classList.remove('show');
+            }
+            validateForm();
+        });
+        bloodGroup.addEventListener('change', validateForm);
+        genderRadios.forEach(radio => radio.addEventListener('change', validateForm));
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const full_name = fullName.value.trim();
+            const age_value = parseInt(age.value);
+            const gender = document.querySelector('input[name="gender"]:checked')?.value;
+            const blood_group = bloodGroup.value;
+            const phone = document.getElementById('phone').value.trim();
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+
+            try {
+                const res = await fetch('/api/patient-details', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name, age: age_value, gender, blood_group, phone })
+                });
+                const data = await res.json();
+                if (data.status === 'ok') {
+                    submitBtn.textContent = 'Saved ✓';
+                    setTimeout(() => {
+                        window.location.href = '/scan/capture';
+                    }, 500);
+                } else {
+                    alert(data.error || 'Failed to save patient details');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Proceed to Scan →';
+                }
+            } catch (err) {
+                alert('Connection error. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Proceed to Scan →';
+            }
+        }
+    </script>
+</body>
+</html>
